@@ -1,0 +1,8 @@
+{
+  "name": "AI Vision Trainer",
+  "description": "AI-powered platform for real-time workout tracking, automated rep counting, and form correction using computer vision.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": []
+}

@@ -52,6 +52,17 @@ class InteractiveFitnessTrainer:
             "shoulder_press": 0.4, "lunge": 0.6
         }
         
+        # Premium Color Palette (BGR)
+        self.colors = {
+            "bg": (16, 11, 10),
+            "card_bg": (25, 20, 18),
+            "cyan": (255, 242, 0),
+            "pink": (247, 0, 255),
+            "green": (136, 255, 0),
+            "white": (255, 255, 255),
+            "text_dim": (158, 148, 139)
+        }
+        
         self.paused = False
         self.buttons = []
         self.hovered_button = None
@@ -150,33 +161,57 @@ class InteractiveFitnessTrainer:
     # --- UI DRAWING ---
     def create_rounded_rectangle(self, img, x, y, w, h, color, radius=15, alpha=0.9):
         overlay = img.copy()
-        cv2.rectangle(overlay, (x, y), (x+w, y+h), color, -1)
+        if radius > 0:
+            cv2.rectangle(overlay, (x + radius, y), (x + w - radius, y + h), color, -1)
+            cv2.rectangle(overlay, (x, y + radius), (x + w, y + h - radius), color, -1)
+            cv2.circle(overlay, (x + radius, y + radius), radius, color, -1, cv2.LINE_AA)
+            cv2.circle(overlay, (x + w - radius, y + radius), radius, color, -1, cv2.LINE_AA)
+            cv2.circle(overlay, (x + radius, y + h - radius), radius, color, -1, cv2.LINE_AA)
+            cv2.circle(overlay, (x + w - radius, y + h - radius), radius, color, -1, cv2.LINE_AA)
+        else:
+            cv2.rectangle(overlay, (x, y), (x+w, y+h), color, -1)
         cv2.addWeighted(overlay, alpha, img, 1-alpha, 0, img)
     
     def draw_button(self, img, x, y, w, h, text, color=(102, 126, 234), is_hovered=False):
         if is_hovered: color = tuple([int(c * 1.2) if int(c * 1.2) <= 255 else 255 for c in color])
-        self.create_rounded_rectangle(img, x, y, w, h, color, radius=10, alpha=0.85)
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        text_size = cv2.getTextSize(text, font, 0.6, 2)[0]
+        self.create_rounded_rectangle(img, x, y, w, h, color, radius=8, alpha=0.85)
+        font = cv2.FONT_HERSHEY_DUPLEX
+        text_size = cv2.getTextSize(text, font, 0.5, 1)[0]
         text_x = x + (w - text_size[0]) // 2
         text_y = y + (h + text_size[1]) // 2
-        cv2.putText(img, text, (text_x, text_y), font, 0.6, (255, 255, 255), 2)
+        cv2.putText(img, text, (text_x, text_y), font, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
         return (x, y, w, h)
 
     def draw_progress_bar(self, img, x, y, w, h, progress, color=(102, 226, 234)):
-        cv2.rectangle(img, (x, y), (x+w, y+h), (50, 50, 50), -1)
-        fill_w = int(w * progress / 100)
-        cv2.rectangle(img, (x, y), (x+fill_w, y+h), color, -1)
-        cv2.rectangle(img, (x, y), (x+w, y+h), (200, 200, 200), 2)
+        self.create_rounded_rectangle(img, x, y, w, h, (40, 40, 40), radius=h//2, alpha=0.8)
+        fill_w = max(h, int(w * progress / 100))
+        if progress > 0:
+            self.create_rounded_rectangle(img, x, y, fill_w, h, color, radius=h//2, alpha=1.0)
+        cv2.rectangle(img, (x, y), (x+w, y+h), (200, 200, 200), 1, cv2.LINE_AA)
         text = f"{int(progress)}%"
-        cv2.putText(img, text, (x + w + 10, y + h - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        cv2.putText(img, text, (x + w + 10, y + h - 2), cv2.FONT_HERSHEY_DUPLEX, 0.4, (255, 255, 255), 1, cv2.LINE_AA)
 
-    def draw_stat_card(self, img, x, y, w, h, title, value, icon=""):
-        self.create_rounded_rectangle(img, x, y, w, h, (40, 40, 50), radius=12, alpha=0.85)
-        cv2.putText(img, icon, (x + 15, y + 35), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (102, 126, 234), 2)
-        cv2.putText(img, title, (x + 15, y + 65), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (150, 150, 150), 1)
-        value_size = 1.2 if self.rep_animation > 0 else 1.0
-        cv2.putText(img, str(value), (x + 15, y + 100), cv2.FONT_HERSHEY_SIMPLEX, value_size, (255, 255, 255), 2)
+    def draw_stat_card(self, img, x, y, w, h, title, value, icon="", color=None):
+        if color is None: color = self.colors["cyan"]
+        self.create_rounded_rectangle(img, x, y, w, h, self.colors["bg"], radius=12, alpha=0.8)
+        cv2.rectangle(img, (x, y), (x+w, y+h), (60, 60, 60), 1, cv2.LINE_AA)
+        cv2.rectangle(img, (x, y+15), (x+4, y+h-15), color, -1)
+        cv2.putText(img, title, (x + 15, y + 25), cv2.FONT_HERSHEY_DUPLEX, 0.4, self.colors["text_dim"], 1, cv2.LINE_AA)
+        val_str = str(value)
+        font_scale = 1.0 if self.rep_animation > 0 else 0.8
+        cv2.putText(img, val_str, (x + 15, y + 60), cv2.FONT_HERSHEY_DUPLEX, font_scale, self.colors["white"], 1, cv2.LINE_AA)
+
+    def draw_circular_progress(self, img, center, radius, progress, total, label="REPS"):
+        x, y = center
+        cv2.circle(img, center, radius, (40, 40, 40), 8, cv2.LINE_AA)
+        angle = (progress / total) * 360 if total > 0 else 0
+        cv2.ellipse(img, center, (radius, radius), -90, 0, angle, self.colors["cyan"], 8, cv2.LINE_AA)
+        val_text = f"{progress}"
+        text_size = cv2.getTextSize(val_text, cv2.FONT_HERSHEY_DUPLEX, 1.2, 2)[0]
+        cv2.putText(img, val_text, (x - text_size[0]//2, y + text_size[1]//2 + 2), cv2.FONT_HERSHEY_DUPLEX, 1.2, self.colors["white"], 2, cv2.LINE_AA)
+        label_text = f"{progress}/{total}"
+        lbl_size = cv2.getTextSize(label_text, cv2.FONT_HERSHEY_DUPLEX, 0.4, 1)[0]
+        cv2.putText(img, label_text, (x - lbl_size[0]//2, y + radius + 25), cv2.FONT_HERSHEY_DUPLEX, 0.4, self.colors["text_dim"], 1, cv2.LINE_AA)
 
     def draw_interactive_ui(self, image):
         h, w = image.shape[:2]
@@ -184,79 +219,44 @@ class InteractiveFitnessTrainer:
         self.pulse_phase += 0.1
         if self.rep_animation > 0: self.rep_animation -= 1
         
+        # Top Bar
+        self.create_rounded_rectangle(image, 20, 20, 360, 45, self.colors["bg"], radius=15, alpha=0.85)
+        cv2.putText(image, "AI TRAINER // PRO VISION", (40, 48), cv2.FONT_HERSHEY_DUPLEX, 0.6, self.colors["cyan"], 1, cv2.LINE_AA)
         
-        self.create_rounded_rectangle(image, 0, 0, w, 80, (30, 30, 40), radius=0, alpha=0.9)
-        title = "AI TRAINER PRO"
-        if self.coach_name:
-            title = f"LIVE SESSION: {self.coach_name.upper()}"
-        
-        cv2.putText(image, title, (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (102, 126, 234), 3)
-        
-       
-        if self.coach_name:
-             self.create_rounded_rectangle(image, w-250, 90, 230, 40, (0, 0, 200), radius=5)
-             cv2.putText(image, "🔴 LIVE COACHING", (w-240, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-
-        # Exercise Buttons
-        exercises = [
-            ("Squats", "squat", (102, 226, 234)), ("Pushups", "pushup", (234, 102, 234)),
-            ("Curls", "bicep_curl", (234, 202, 102)), ("Press", "shoulder_press", (234, 102, 166)),
-            ("Lunge", "lunge", (102, 234, 166))
-        ]
-        
-        btn_width = 110; btn_gap = 10
-        total_width = len(exercises) * (btn_width + btn_gap)
-        start_x = w - total_width - 20
-        
-        for i, (label, ex, col) in enumerate(exercises):
+        # Exercise Selector (Top Right)
+        exercises = [("SQUAT", "squat"), ("PUSHUP", "pushup"), ("CURL", "bicep_curl"), ("PRESS", "shoulder_press")]
+        btn_w = 85; gap = 12
+        for i, (label, ex) in enumerate(exercises):
             is_active = self.exercise == ex
+            col = self.colors["cyan"] if is_active else (60, 60, 60)
             is_hovered = self.hovered_button == f"ex_{i}"
-            col = col if is_active else (70, 70, 80)
-            btn = self.draw_button(image, start_x + i*(btn_width + btn_gap), 20, btn_width, 45, label, col, is_hovered)
+            btn = self.draw_button(image, w - (len(exercises)-i)*(btn_w+gap) - 20, 20, btn_w, 45, label, col, is_hovered)
             self.buttons.append((btn, f"ex_{i}", ex))
+
+        # Circular Rep Counter (Top Center-ish)
+        self.draw_circular_progress(image, (w - 150, 150), 55, self.counter, 15)
+
+        # Stats Sidebar (Right)
+        side_x = w - 240
+        self.draw_stat_card(image, side_x, 240, 220, 80, "CALORIES", f"{self.total_calories:.1f} kcal", color=self.colors["pink"])
+        self.draw_stat_card(image, side_x, 340, 220, 80, "FORM SCORE", f"{self.form_score}%", color=self.colors["green"])
         
-        # Stats Cards
-        card_x = 20; card_y = 100; card_w = 200; card_h = 120
-        self.draw_stat_card(image, card_x, card_y, card_w, card_h, "REPS", self.counter, "#")
-        self.draw_stat_card(image, card_x, card_y + 140, card_w, card_h, "CALORIES", f"{self.total_calories:.1f}", "Kcal")
-        
-        if self.workout_start_time:
-            elapsed = int(time.time() - self.workout_start_time)
-            timer_text = f"{elapsed // 60:02d}:{elapsed % 60:02d}"
-        else: timer_text = "00:00"
-        self.draw_stat_card(image, card_x, card_y + 280, card_w, card_h, "TIME", timer_text, "Time")
-        
-        # Stage Indicator
-        if not self.paused:
-            stage_text = self.stage if self.stage else "START"
-            stage_size = 3.0 if self.rep_animation > 0 else 2.0
-            text_size = cv2.getTextSize(stage_text, cv2.FONT_HERSHEY_SIMPLEX, stage_size, 4)[0]
-            text_x = (w - text_size[0]) // 2; text_y = h // 2
-            cv2.putText(image, stage_text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, stage_size, (255, 255, 255), 4)
-        
-        # Feedback Overlay
-        if self.feedback and not self.paused:
-            feedback_y = h - 180
-            feedback_color = (0, 255, 0) if "Good" in self.feedback or "Ready" in self.feedback else (0, 200, 255)
-            if "!" in self.feedback and "Perfect" not in self.feedback: feedback_color = (0, 100, 255)
-            
-            text_size = cv2.getTextSize(self.feedback, cv2.FONT_HERSHEY_SIMPLEX, 1.2, 3)[0]
-            text_x = (w - text_size[0]) // 2
-            self.create_rounded_rectangle(image, text_x - 20, feedback_y - 40, text_size[0] + 40, 60, (40, 40, 50), alpha=0.8)
-            cv2.putText(image, self.feedback, (text_x, feedback_y), cv2.FONT_HERSHEY_SIMPLEX, 1.2, feedback_color, 3)
+        # Biomechanics Feedback (Bottom Left)
+        if self.feedback:
+            self.create_rounded_rectangle(image, 30, h - 140, 380, 60, self.colors["bg"], radius=12, alpha=0.85)
+            cv2.putText(image, "BIOMECHANICS FEEDBACK:", (45, h - 115), cv2.FONT_HERSHEY_DUPLEX, 0.4, self.colors["cyan"], 1, cv2.LINE_AA)
+            cv2.putText(image, self.feedback.upper(), (45, h - 90), cv2.FONT_HERSHEY_DUPLEX, 0.6, self.colors["white"], 1, cv2.LINE_AA)
 
         # Bottom Controls
-        btn_y = h - 100; c_width = 140; c_height = 50; gap = 20
-        controls = [("Pause", "pause"), ("Reset", "reset"), ("Quit", "quit")]
-        total_cw = len(controls) * (c_width + gap) - gap
-        start_cx = (w - total_cw) // 2
-        for i, (label, action) in enumerate(controls):
-            col = (234, 102, 102) if action == "quit" else (102, 202, 234)
-            is_hovered = self.hovered_button == f"control_{i}"
-            btn = self.draw_button(image, start_cx + i*(c_width + gap), btn_y, c_width, c_height, label, col, is_hovered)
-            self.buttons.append((btn, f"control_{i}", action))
+        ctrl_y = h - 65; cw = 110; ch = 45; cgap = 15
+        controls = [("PAUSE", "pause"), ("RESET", "reset"), ("QUIT", "quit")]
+        for i, (label, act) in enumerate(controls):
+            col = (50, 50, 200) if act == "quit" else (90, 90, 90)
+            is_hovered = self.hovered_button == f"ctrl_{i}"
+            btn = self.draw_button(image, 30 + i*(cw+cgap), ctrl_y, cw, ch, label, col, is_hovered)
+            self.buttons.append((btn, f"ctrl_{i}", act))
 
-        self.draw_progress_bar(image, w - 320, h - 50, 280, 20, max(0, self.form_score))
+        self.draw_progress_bar(image, w - 320, h - 50, 280, 15, max(0, self.form_score), color=self.colors["green"])
 
     def handle_click(self, x, y):
         for (bx, by, bw, bh), btn_id, action in self.buttons:
@@ -343,7 +343,18 @@ class InteractiveFitnessTrainer:
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
             if not self.paused and results.pose_landmarks:
-                self.mp_drawing.draw_landmarks(image, results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
+                # Custom Neon Skeleton
+                landmark_drawing_spec = self.mp_drawing.DrawingSpec(color=(255, 0, 255), thickness=2, circle_radius=3)
+                connection_drawing_spec = self.mp_drawing.DrawingSpec(color=(255, 255, 0), thickness=2)
+                
+                self.mp_drawing.draw_landmarks(
+                    image, 
+                    results.pose_landmarks, 
+                    self.mp_pose.POSE_CONNECTIONS,
+                    landmark_drawing_spec,
+                    connection_drawing_spec
+                )
+                
                 lm = results.pose_landmarks.landmark
                 if self.exercise == "squat": self.check_squat(lm)
                 elif self.exercise == "pushup": self.check_pushup(lm)
@@ -369,11 +380,21 @@ class InteractiveFitnessTrainer:
 class FitnessApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("AI Fitness Trainer - Login")
-        self.root.geometry("400x500")
-        self.root.configure(bg="#2c3e50")
+        self.root.title("AI TRAINER // CORE INITIALIZATION")
+        self.root.geometry("400x600")
+        self.root.configure(bg="#0a0b10")
         self.current_user = None
         self.selected_trainer = None
+        
+        self.style = ttk.Style()
+        self.style.theme_use('clam')
+        self.style.configure("Treeview", 
+            background="#161b22", 
+            foreground="white", 
+            fieldbackground="#161b22",
+            borderwidth=0)
+        self.style.map("Treeview", background=[('selected', '#00f2ff')])
+        
         self.show_login_screen()
         
         # MOCK TRAINER DATA
@@ -387,14 +408,26 @@ class FitnessApp:
     # --- SCREEN 1: LOGIN ---
     def show_login_screen(self):
         self.clear_window()
-        self.root.geometry("400x500")
-        tk.Label(self.root, text="💪 AI FITNESS", font=("Helvetica", 24, "bold"), bg="#2c3e50", fg="white").pack(pady=40)
-        tk.Label(self.root, text="Username", bg="#2c3e50", fg="white").pack(pady=5)
-        self.entry_user = tk.Entry(self.root, font=("Arial", 12)); self.entry_user.pack(pady=5, ipadx=20, ipady=5)
-        tk.Label(self.root, text="Password", bg="#2c3e50", fg="white").pack(pady=5)
-        self.entry_pass = tk.Entry(self.root, show="*", font=("Arial", 12)); self.entry_pass.pack(pady=5, ipadx=20, ipady=5)
-        tk.Button(self.root, text="LOGIN", command=self.login, bg="#27ae60", fg="white", font=("Arial", 12, "bold"), width=15).pack(pady=20)
-        tk.Button(self.root, text="Create Account", command=self.register, bg="#2980b9", fg="white").pack()
+        self.root.geometry("400x600")
+        
+        # Logo Area
+        tk.Label(self.root, text="A I   T R A I N E R", font=("Helvetica", 20, "bold"), bg="#0a0b10", fg="#00f2ff").pack(pady=(60, 10))
+        tk.Label(self.root, text="PRO VISION SYSTEM", font=("Helvetica", 8), bg="#0a0b10", fg="#8b949e").pack(pady=(0, 40))
+        
+        # Inputs
+        container = tk.Frame(self.root, bg="#0a0b10")
+        container.pack(pady=10, padx=40, fill="x")
+        
+        tk.Label(container, text="USER_IDENTITY", bg="#0a0b10", fg="#8b949e", font=("Arial", 8, "bold")).pack(anchor="w")
+        self.entry_user = tk.Entry(self.root, font=("Arial", 12), bg="#161b22", fg="white", insertbackground="white", bd=0); 
+        self.entry_user.pack(pady=(5, 20), padx=40, ipady=10, fill="x")
+        
+        tk.Label(container, text="ACCESS_KEY", bg="#0a0b10", fg="#8b949e", font=("Arial", 8, "bold")).pack(anchor="w")
+        self.entry_pass = tk.Entry(self.root, show="*", font=("Arial", 12), bg="#161b22", fg="white", insertbackground="white", bd=0); 
+        self.entry_pass.pack(pady=(5, 30), padx=40, ipady=10, fill="x")
+        
+        tk.Button(self.root, text="INITIALIZE", command=self.login, bg="#00f2ff", fg="#0a0b10", font=("Arial", 12, "bold"), bd=0, cursor="hand2").pack(pady=10, padx=40, fill="x", ipady=10)
+        tk.Button(self.root, text="CREATE NEW IDENTITY", command=self.register, bg="#0a0b10", fg="#ff00f7", font=("Arial", 10), bd=0, cursor="hand2").pack(pady=10)
 
     def login(self):
         user = self.entry_user.get(); pwd = self.entry_pass.get()
@@ -421,38 +454,41 @@ class FitnessApp:
 
     # --- SCREEN 2: DASHBOARD ---
     def show_dashboard(self):
-        self.clear_window(); self.root.geometry("900x700"); self.root.title(f"Dashboard - {self.current_user}")
+        self.clear_window(); self.root.geometry("1000x750"); self.root.title(f"COMMAND CENTER // {self.current_user}")
+        self.root.configure(bg="#0a0b10")
         
-        nav = tk.Frame(self.root, bg="#34495e", height=60); nav.pack(fill="x")
-        tk.Label(nav, text=f"Welcome, {self.current_user}", bg="#34495e", fg="white", font=("Arial", 14)).pack(side="left", padx=20, pady=15)
-        tk.Button(nav, text="Hire a Coach", command=self.show_marketplace, bg="#f39c12", fg="white").pack(side="right", padx=10)
-        tk.Button(nav, text="Logout", command=self.show_login_screen, bg="#c0392b", fg="white").pack(side="right", padx=10)
+        # Navigation Bar
+        nav = tk.Frame(self.root, bg="#161b22", height=70); nav.pack(fill="x")
+        tk.Label(nav, text=f"OPERATOR: {self.current_user}", bg="#161b22", fg="#00f2ff", font=("Helvetica", 14, "bold")).pack(side="left", padx=30, pady=20)
+        tk.Button(nav, text="LOGOUT", command=self.show_login_screen, bg="#161b22", fg="#ff4d4d", bd=0, padx=20).pack(side="right", padx=20)
+        tk.Button(nav, text="HIRE COACH", command=self.show_marketplace, bg="#00f2ff", fg="#0a0b10", font=("Arial", 9, "bold"), bd=0, padx=15).pack(side="right", padx=10)
         
-        stats_frame = tk.Frame(self.root, bg="#2c3e50"); stats_frame.pack(fill="x", pady=20, padx=20)
+        # Stats Cards
+        stats_frame = tk.Frame(self.root, bg="#0a0b10"); stats_frame.pack(fill="x", pady=(30, 10), padx=30)
         total_reps, total_cals = self.get_user_stats()
-        self.create_stat_card(stats_frame, "Total Reps", str(total_reps), "#f39c12", 0)
-        self.create_stat_card(stats_frame, "Calories Burnt", f"{total_cals:.1f}", "#e74c3c", 1)
+        self.create_stat_card(stats_frame, "AGGREGATE REPS", str(total_reps), "#00f2ff", 0)
+        self.create_stat_card(stats_frame, "CALORIC BURN", f"{total_cals:.1f}", "#ff00f7", 1)
         
-        tk.Label(self.root, text="Recent Workouts", bg="#2c3e50", fg="white", font=("Arial", 12, "bold")).pack(pady=(20, 5))
+        # Start Button
+        btn_text = ">>> INITIALIZE MISSION (AI CORE) <<<"
+        if self.selected_trainer:
+            btn_text = f">>> LIVE SESSION: {self.selected_trainer['name'].upper()} <<<"
+        tk.Button(self.root, text=btn_text, command=self.launch_camera, bg="#00f2ff", fg="#0a0b10", font=("Helvetica", 14, "bold"), height=2, bd=0, cursor="hand2").pack(fill="x", padx=30, pady=15)
+
+        # Mission Logs Table
+        tk.Label(self.root, text="RECENT MISSION LOGS", bg="#0a0b10", fg="#8b949e", font=("Helvetica", 10, "bold")).pack(anchor="w", padx=30, pady=(10, 5))
         
-        table_frame = tk.Frame(self.root); table_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        table_frame = tk.Frame(self.root, bg="#161b22", bd=0); table_frame.pack(fill="both", expand=True, padx=30, pady=(0, 20))
         scroll = tk.Scrollbar(table_frame); scroll.pack(side="right", fill="y")
         cols = ("Date", "Coach", "Exercise", "Reps", "Feedback") 
         self.tree = ttk.Treeview(table_frame, columns=cols, show="headings", yscrollcommand=scroll.set)
-        
         for col in cols: 
             self.tree.heading(col, text=col)
             self.tree.column(col, width=100)
-            
         self.tree.pack(fill="both", expand=True); scroll.config(command=self.tree.yview)
         
+        # Now load data AFTER tree exists
         self.load_history_table()
-        
-        start_btn_text = "🚀 START TRAINING (AI ONLY)"
-        if self.selected_trainer:
-            start_btn_text = f"🔴 START LIVE SESSION WITH {self.selected_trainer['name'].upper()}"
-            
-        tk.Button(self.root, text=start_btn_text, command=self.launch_camera, bg="#27ae60", fg="white", font=("Arial", 16, "bold"), height=2).pack(fill="x", side="bottom")
 
     # --- SCREEN 3: COACH MARKETPLACE ---
     def show_marketplace(self):
@@ -522,6 +558,12 @@ class FitnessApp:
         for widget in self.root.winfo_children(): widget.destroy()
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = FitnessApp(root)
-    root.mainloop()
+    import sys
+    if len(sys.argv) >= 3 and sys.argv[1] == '--user':
+        username = sys.argv[2]
+        trainer = InteractiveFitnessTrainer(username)
+        trainer.start()
+    else:
+        root = tk.Tk()
+        app = FitnessApp(root)
+        root.mainloop()

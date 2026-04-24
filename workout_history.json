@@ -1,0 +1,118 @@
+[
+  {
+    "date": "2026-01-05 22:04:51",
+    "exercise": "pushup",
+    "reps": 1,
+    "duration": 7,
+    "calories": 0.35,
+    "form_score": 100
+  },
+  {
+    "date": "2026-01-06 14:54:00",
+    "exercise": "pushup",
+    "reps": 1,
+    "duration": 1,
+    "calories": 0.35,
+    "form_score": 100
+  },
+  {
+    "date": "2026-01-06 14:54:02",
+    "exercise": "bicep_curl",
+    "reps": 1,
+    "duration": 2,
+    "calories": 0.25,
+    "form_score": 100
+  },
+  {
+    "date": "2026-01-06 14:54:23",
+    "exercise": "bicep_curl",
+    "reps": 7,
+    "duration": 20,
+    "calories": 1.75,
+    "form_score": 100
+  },
+  {
+    "date": "2026-01-06 22:03:18",
+    "exercise": "pushup",
+    "reps": 7,
+    "duration": 24,
+    "calories": 2.45,
+    "form_score": 92
+  },
+  {
+    "username": "parth",
+    "date": "2026-01-06 22:22",
+    "exercise": "lunge",
+    "reps": 0,
+    "calories": 0.65,
+    "duration": "0m 17s"
+  },
+  {
+    "username": "parth",
+    "date": "2026-01-06 22:25",
+    "exercise": "bicep_curl",
+    "reps": 4,
+    "calories": 1.0,
+    "duration": "0m 20s",
+    "feedback": "Extension"
+  },
+  {
+    "username": "parth",
+    "date": "2026-01-06 22:29",
+    "exercise": "bicep_curl",
+    "reps": 7,
+    "calories": 1.75,
+    "duration": "0m 39s",
+    "feedback": "Extension"
+  },
+  {
+    "username": "parth",
+    "coach": "Arnold S.",
+    "date": "2026-01-06 22:34",
+    "exercise": "bicep_curl",
+    "reps": 10,
+    "calories": 3.0,
+    "duration": "0m 31s",
+    "feedback": "Extension"
+  },
+  {
+    "username": "parth",
+    "coach": "AI",
+    "date": "2026-01-07 10:28",
+    "exercise": "bicep_curl",
+    "reps": 8,
+    "calories": 2.0,
+    "duration": "0m 18s",
+    "feedback": "Extension"
+  },
+  {
+    "username": "hey",
+    "coach": "AI",
+    "date": "2026-03-22 14:43",
+    "exercise": "bicep_curl",
+    "reps": 8,
+    "calories": 2.0,
+    "duration": "0m 48s",
+    "feedback": "Extension"
+  },
+  {
+    "username": "parth",
+    "coach": "AI",
+    "date": "2026-04-24 22:09",
+    "exercise": "squat",
+    "reps": 1,
+    "calories": 0.5,
+    "duration": "0m 5s",
+    "feedback": "None"
+  },
+  {
+    "username": "parth",
+    "coach": "AI",
+    "date": "2026-04-24 22:54",
+    "exercise": "squat",
+    "reps": 0,
+    "calories": 0,
+    "duration": "0m 7s",
+    "feedback": "None"
+  }
+]

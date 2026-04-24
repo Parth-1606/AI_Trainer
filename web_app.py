@@ -112,6 +112,41 @@ def dashboard():
     user_id = session['user_id']
     user = User.query.get(user_id)
     
+    # Sync from json
+    if os.path.exists('workout_history.json'):
+        try:
+            with open('workout_history.json', 'r') as f:
+                history = json.load(f)
+            for entry in history:
+                if entry.get('username') == user.username:
+                    try:
+                        date_obj = datetime.strptime(entry.get('date'), '%Y-%m-%d %H:%M')
+                    except Exception:
+                        continue
+                    if not Workout.query.filter_by(user_id=user.id, date=date_obj, exercise_type=entry.get('exercise')).first():
+                        dur_str = str(entry.get('duration', '0m 0s'))
+                        dur_sec = 0
+                        if 'm' in dur_str and 's' in dur_str:
+                            parts = dur_str.split('m')
+                            m = int(parts[0].strip())
+                            s = int(parts[1].replace('s','').strip())
+                            dur_sec = m * 60 + s
+                        
+                        w = Workout(
+                            user_id=user.id,
+                            date=date_obj,
+                            exercise_type=entry.get('exercise'),
+                            reps=int(entry.get('reps', 0)),
+                            duration=dur_sec,
+                            calories=float(entry.get('calories', 0)),
+                            form_score=100,
+                            notes=entry.get('feedback', '')
+                        )
+                        db.session.add(w)
+            db.session.commit()
+        except Exception as e:
+            print("Error syncing json:", e)
+            
     # Get stats
     total_workouts = Workout.query.filter_by(user_id=user_id).count()
     total_reps = db.session.query(db.func.sum(Workout.reps)).filter_by(user_id=user_id).scalar() or 0
@@ -135,7 +170,8 @@ def dashboard():
                          total_calories=round(total_calories, 1),
                          avg_form_score=round(avg_form_score, 1),
                          recent_workouts=recent_workouts,
-                         week_workouts=len(week_workouts))
+                         week_workouts=len(week_workouts),
+                         datetime=datetime)
 
 @app.route('/calendar')
 def calendar():
@@ -143,6 +179,30 @@ def calendar():
         return redirect(url_for('login'))
     
     return render_template('calendar.html')
+
+@app.route('/vitals')
+def vitals():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('vitals.html')
+
+@app.route('/community')
+def community():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('community.html')
+
+@app.route('/nutrition')
+def nutrition():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('nutrition.html')
+
+@app.route('/settings')
+def settings():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('settings.html')
 
 @app.route('/api/workouts')
 def get_workouts():
@@ -231,6 +291,18 @@ def get_stats():
         'weekly_progress': weekly_data
     })
 
+from flask import send_from_directory
+
+@app.route('/trainer_ui')
+def trainer_ui():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return send_from_directory('frontend/dist', 'index.html')
+
+@app.route('/assets/<path:path>')
+def serve_assets(path):
+    return send_from_directory('frontend/dist/assets', path)
+
 @app.route('/start_trainer')
 def start_trainer():
     if 'user_id' not in session:
@@ -240,30 +312,29 @@ def start_trainer():
         import subprocess
         import sys
         
-        # Get the Python executable and script path
         python_exe = sys.executable
         script_path = os.path.join(os.path.dirname(__file__), 'app.py')
         
-        # Check if app.py exists
         if not os.path.exists(script_path):
             flash('Error: app.py not found! Make sure it\'s in the same folder.', 'error')
             return redirect(url_for('dashboard'))
+            
+        username = session.get('username', 'User')
         
-        # Launch in a new process
-        if os.name == 'nt':  # Windows
+        if os.name == 'nt':
             subprocess.Popen(
-                [python_exe, script_path],
+                [python_exe, script_path, '--user', username],
                 creationflags=subprocess.CREATE_NEW_CONSOLE,
                 cwd=os.path.dirname(script_path)
             )
-        else:  # Linux/Mac
-            subprocess.Popen([python_exe, script_path])
-        
-        flash('AI Fitness Trainer launching... Check the new window!', 'success')
+        else:
+            subprocess.Popen([python_exe, script_path, '--user', username])
+            
     except Exception as e:
-        flash(f'Error launching trainer: {str(e)}', 'error')
-    
-    return redirect(url_for('dashboard'))
+        print(f"Error launching trainer: {e}")
+        
+    from flask import send_from_directory
+    return send_from_directory(os.path.dirname(__file__), 'redirect.html')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

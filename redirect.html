@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting to AI Trainer...</title>
+    <!-- Automatic redirect after 2 seconds -->
+    <meta http-equiv="refresh" content="2; url=http://localhost:5000" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #0a0b10;
+            color: #00f2ff;
+        }
+        .loader {
+            border: 4px solid #161b22;
+            border-top: 4px solid #00f2ff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .container {
+            text-align: center;
+        }
+        .status {
+            color: #8b949e;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .manual-link {
+            font-size: 12px; 
+            color: #8b949e; 
+            margin-top: 30px;
+        }
+        .manual-link a {
+            color: #ff00f7; 
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+        .manual-link a:hover {
+            color: #00f2ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="loader"></div>
+        <h2>INITIALIZING AI TRAINER SYSTEM...</h2>
+        <p class="status" id="status-text">Establishing connection to local server...</p>
+        
+        <p class="manual-link">If not redirected automatically, <a href="http://localhost:5000">CLICK HERE TO PROCEED</a>.</p>
+    </div>
+
+    <script>
+        // Check if server is reachable before redirecting
+        window.addEventListener('load', function() {
+            fetch('http://localhost:5000')
+                .then(function(response) {
+                    if (response.ok) {
+                        document.getElementById('status-text').textContent = 'Connection established! Redirecting...';
+                        document.getElementById('status-text').style.color = '#00f2ff';
+                    }
+                })
+                .catch(function(error) {
+                    document.getElementById('status-text').textContent = '⚠ Warning: Local server not responding. Please ensure the Flask app is running.';
+                    document.getElementById('status-text').style.color = '#ff4d4d';
+                    
+                    // Stop the spinner to indicate error
+                    document.querySelector('.loader').style.animation = 'none';
+                    document.querySelector('.loader').style.borderTopColor = '#ff4d4d';
+                });
+                
+            // Fallback JS redirect
+            setTimeout(function() {
+                window.location.href = "http://localhost:5000";
+            }, 2500);
+        });
+    </script>
+</body>
+</html>

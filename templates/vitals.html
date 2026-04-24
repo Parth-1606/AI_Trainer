@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Vitals - FitLynx AI{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+{% include "partials/shared_styles.html" %}
+<style>
+    .vitals-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .vital-big {
+        text-align: center;
+        padding: 30px 20px;
+    }
+    .vital-big .value {
+        font-size: 3rem;
+        font-weight: 800;
+        color: white;
+        margin: 10px 0 5px;
+    }
+    .vital-big .unit {
+        font-size: 1rem;
+        color: var(--text-muted);
+    }
+    .vital-big .label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    .vital-chart {
+        height: 40px;
+        margin-top: 15px;
+        border-radius: 8px;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .status-good {
+        background: rgba(0, 230, 118, 0.15);
+        color: var(--accent-green);
+    }
+    .status-warn {
+        background: rgba(255, 152, 0, 0.15);
+        color: var(--accent-orange);
+    }
+    .timeline-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .timeline-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% set active_page = 'vitals' %}
+<div class="layout-wrapper">
+    {% include "partials/sidebar.html" %}
+    
+    <div class="main-panel">
+        <div class="topbar">
+            <div class="top-nav">
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('calendar') }}">Workouts</a>
+                <a href="#" class="active">Vitals</a>
+                <a href="{{ url_for('community') }}">Community</a>
+                <a href="{{ url_for('nutrition') }}">Nutrition</a>
+                <a href="{{ url_for('settings') }}">Settings</a>
+            </div>
+            <div class="user-info">
+                <div class="profile-header">
+                    <div style="text-align: right; line-height: 1.2;">
+                        <div style="font-weight: 600;">{{ session.username }}</div>
+                        <div style="font-size: 0.8rem; color: var(--accent-green);"><span class="profile-status"></span> Active</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 5px;">My Vitals</h1>
+        <p style="color: var(--text-muted); margin-bottom: 25px;">Real-time health monitoring</p>
+        
+        <div class="vitals-grid">
+            <div class="panel vital-big">
+                <div class="label"><span style="color:#ff4d4d;">❤️</span> Heart Rate</div>
+                <div class="value">72</div>
+                <div class="unit">bpm</div>
+                <span class="status-badge status-good">Normal</span>
+                <div class="vital-chart" style="background: url('data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 120 30&quot;><polyline points=&quot;0,20 10,18 20,22 30,5 40,20 50,18 60,25 70,8 80,20 90,15 100,22 110,18 120,20&quot; fill=&quot;none&quot; stroke=&quot;%23ff4d4d&quot; stroke-width=&quot;2&quot;/></svg>') no-repeat center/100% 100%;"></div>
+            </div>
+            <div class="panel vital-big">
+                <div class="label"><span style="color:var(--accent-teal);">💧</span> SpO2</div>
+                <div class="value">98<span style="font-size:1.5rem;">%</span></div>
+                <div class="unit">oxygen saturation</div>
+                <span class="status-badge status-good">Excellent</span>
+                <div class="vital-chart" style="background: url('data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 120 30&quot;><polyline points=&quot;0,5 20,6 40,5 60,7 80,5 100,6 120,5&quot; fill=&quot;none&quot; stroke=&quot;%2300f2ff&quot; stroke-width=&quot;2&quot;/></svg>') no-repeat center/100% 100%;"></div>
+            </div>
+            <div class="panel vital-big">
+                <div class="label"><span style="color:var(--accent-green);">🧘</span> Stress Level</div>
+                <div class="value" style="color:var(--accent-green);">Low</div>
+                <div class="unit">score: 28/100</div>
+                <span class="status-badge status-good">Relaxed</span>
+                <div class="vital-chart" style="background: url('data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 120 30&quot;><polyline points=&quot;0,15 20,12 40,18 60,10 80,14 100,11 120,13&quot; fill=&quot;none&quot; stroke=&quot;%2300e676&quot; stroke-width=&quot;2&quot;/></svg>') no-repeat center/100% 100%;"></div>
+            </div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">🌡️ Body Temperature</div>
+                </div>
+                <div style="text-align:center; padding: 20px 0;">
+                    <div style="font-size: 3rem; font-weight: 800; color: white;">36.6°C</div>
+                    <span class="status-badge status-good" style="margin-top:10px;">Normal Range</span>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">😴 Sleep Quality</div>
+                </div>
+                <div style="text-align:center; padding: 20px 0;">
+                    <div style="font-size: 3rem; font-weight: 800; color: white;">7h 12m</div>
+                    <div style="color:var(--text-muted); margin: 5px 0;">Score: <span style="color: var(--accent-teal); font-weight: 700;">84/100</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">📋 Recent Activity</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot" style="background:var(--accent-green);"></div>
+                <div style="flex:1;"><span style="font-weight:600;">Heart rate stable</span> <span style="color:var(--text-muted);font-size:0.85rem;">— Resting zone for 2 hours</span></div>
+                <div style="color:var(--text-muted);font-size:0.8rem;">10 min ago</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot" style="background:var(--accent-orange);"></div>
+                <div style="flex:1;"><span style="font-weight:600;">Elevated heart rate</span> <span style="color:var(--text-muted);font-size:0.85rem;">— During workout session</span></div>
+                <div style="color:var(--text-muted);font-size:0.8rem;">3 hours ago</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot" style="background:var(--accent-teal);"></div>
+                <div style="flex:1;"><span style="font-weight:600;">Sleep cycle complete</span> <span style="color:var(--text-muted);font-size:0.85rem;">— 4 deep sleep cycles detected</span></div>
+                <div style="color:var(--text-muted);font-size:0.8rem;">8 hours ago</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
