@@ -5,19 +5,24 @@ from datetime import datetime, timedelta
 import json
 import os
 
-is_vercel = os.environ.get('VERCEL') == '1'
-if is_vercel:
-    app = Flask(__name__, instance_path='/tmp/instance')
-else:
+try:
+    os.makedirs('instance', exist_ok=True)
+    is_writable = True
+    # Test if we can actually write a file
+    with open('instance/.write_test', 'w') as f:
+        f.write('test')
+    os.remove('instance/.write_test')
+except Exception:
+    is_writable = False
+
+if is_writable:
     app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fitness_tracker.db'
+else:
+    app = Flask(__name__, instance_path='/tmp/instance')
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/fitness_tracker.db'
 
 app.config['SECRET_KEY'] = 'your-secret-key-here-change-in-production'
-
-if is_vercel:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/fitness_tracker.db'
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fitness_tracker.db'
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
