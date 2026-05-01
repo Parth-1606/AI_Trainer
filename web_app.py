@@ -5,13 +5,22 @@ from datetime import datetime, timedelta
 import json
 import os
 
-app = Flask(__name__)
+is_vercel = os.environ.get('VERCEL') == '1'
+if is_vercel:
+    app = Flask(__name__, instance_path='/tmp/instance')
+else:
+    app = Flask(__name__)
+
 app.config['SECRET_KEY'] = 'your-secret-key-here-change-in-production'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fitness_tracker.db'
+
+if is_vercel:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/fitness_tracker.db'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fitness_tracker.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
