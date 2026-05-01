@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}AI Vision Trainer - FitLynx AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .trainer-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .video-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 1200px;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 2px solid var(--accent-cyan);
+        box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+        background: #000;
+    }
+    video {
+        width: 100%;
+        display: block;
+    }
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    .stats-overlay {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        background: rgba(10, 11, 16, 0.8);
+        padding: 15px 25px;
+        border-radius: 12px;
+        border: 1px solid var(--accent-cyan);
+        backdrop-filter: blur(10px);
+        display: flex;
+        gap: 20px;
+    }
+    .stat-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--accent-cyan);
+    }
+    .top-controls {
+        width: 100%;
+        max-width: 1200px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .controls {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    #finish-btn {
+        display: none;
+    }
+    
+    @media (max-width: 768px) {
+        .stats-overlay {
+            flex-direction: row;
+            width: calc(100% - 40px);
+            justify-content: space-around;
+            bottom: 10px;
+            left: 10px;
+            padding: 10px;
+        }
+        .top-controls {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="trainer-container">
+    <div class="top-controls">
+        <h2><span style="color:var(--accent-cyan)">LIVE</span> Vision Tracking</h2>
+        <div class="controls">
+            <select id="exercise-select" class="btn btn-outline" style="background:var(--bg-dark); color:var(--text-primary); padding: 8px;">
+                <option value="squat">Squats</option>
+                <option value="pushup">Pushups</option>
+                <option value="bicep_curl">Bicep Curls</option>
+                <option value="shoulder_press">Shoulder Press</option>
+                <option value="lunge">Lunges</option>
+            </select>
+            <button id="switch-cam-btn" class="btn btn-outline" style="background:var(--bg-dark); color:var(--text-primary); padding: 8px;">🔄 Switch Camera</button>
+            <button id="finish-btn" class="btn btn-primary" style="background:var(--accent-pink); box-shadow: 0 0 20px rgba(255, 0, 247, 0.4);">Finish Workout</button>
+        </div>
+    </div>
+
+    <div class="video-wrapper">
+        <video id="input_video" autoplay playsinline></video>
+        <canvas id="output_canvas"></canvas>
+        
+        <div class="stats-overlay">
+            <div class="stat-box">
+                <span class="stat-label">Reps</span>
+                <span class="stat-value" id="rep-count">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Stage</span>
+                <span class="stat-value" id="stage" style="color:var(--accent-green); font-size:1.5rem; margin-top:5px;">Ready</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+<script>
+    const videoElement = document.getElementById('input_video');
+    const canvasElement = document.getElementById('output_canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    
+    const repCountEl = document.getElementById('rep-count');
+    const stageEl = document.getElementById('stage');
+    const exerciseSelect = document.getElementById('exercise-select');
+    const finishBtn = document.getElementById('finish-btn');
+    const switchCamBtn = document.getElementById('switch-cam-btn');
+    
+    let counter = 0;
+    let stage = 'up';
+    let currentExercise = 'squat';
+    let startTime = null;
+    
+    exerciseSelect.addEventListener('change', (e) => {
+        currentExercise = e.target.value;
+        counter = 0;
+        repCountEl.innerText = counter;
+        stage = 'up';
+        stageEl.innerText = stage;
+    });
+
+    function calculateAngle(a, b, c) {
+        let radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+        let angle = Math.abs(radians * 180.0 / Math.PI);
+        if (angle > 180.0) angle = 360 - angle;
+        return angle;
+    }
+
+    function onResults(results) {
+        if (!startTime) startTime = new Date();
+        finishBtn.style.display = 'block';
+
+        canvasElement.width = videoElement.videoWidth;
+        canvasElement.height = videoElement.videoHeight;
+
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        
+        // Mirror the image
+        canvasCtx.translate(canvasElement.width, 0);
+        canvasCtx.scale(-1, 1);
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+        
+        if (results.poseLandmarks) {
+            drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
+                           {color: '#00f2ff', lineWidth: 4});
+            drawLandmarks(canvasCtx, results.poseLandmarks,
+                          {color: '#ff00f7', lineWidth: 2, radius: 4});
+            
+            // Revert transform to draw text normally if needed
+            canvasCtx.restore();
+            
+            const landmarks = results.poseLandmarks;
+            
+            if (currentExercise === 'squat') {
+                const hip = landmarks[23];
+                const knee = landmarks[25];
+                const ankle = landmarks[27];
+                if (hip && knee && ankle) {
+                    const angle = calculateAngle(hip, knee, ankle);
+                    if (angle > 160) {
+                        stage = 'up';
+                        stageEl.innerText = 'Up';
+                        stageEl.style.color = 'var(--accent-cyan)';
+                    }
+                    if (angle < 90 && stage === 'up') {
+                        stage = 'down';
+                        stageEl.innerText = 'Down';
+                        stageEl.style.color = 'var(--accent-pink)';
+                        counter++;
+                        repCountEl.innerText = counter;
+                    }
+                }
+            } else if (currentExercise === 'pushup' || currentExercise === 'bicep_curl') {
+                const shoulder = landmarks[11];
+                const elbow = landmarks[13];
+                const wrist = landmarks[15];
+                if (shoulder && elbow && wrist) {
+                    const angle = calculateAngle(shoulder, elbow, wrist);
+                    if (currentExercise === 'pushup') {
+                        if (angle > 160) { stage = 'up'; stageEl.innerText = 'Up'; }
+                        if (angle < 90 && stage === 'up') {
+                            stage = 'down'; stageEl.innerText = 'Down';
+                            counter++; repCountEl.innerText = counter;
+                        }
+                    } else { // curl
+                        if (angle > 160) { stage = 'down'; stageEl.innerText = 'Down'; }
+                        if (angle < 35 && stage === 'down') {
+                            stage = 'up'; stageEl.innerText = 'Up';
+                            counter++; repCountEl.innerText = counter;
+                        }
+                    }
+                }
+            } else if (currentExercise === 'shoulder_press') {
+                const shoulder = landmarks[11];
+                const elbow = landmarks[13];
+                const wrist = landmarks[15];
+                if (shoulder && elbow && wrist) {
+                    const angle = calculateAngle(shoulder, elbow, wrist);
+                    if (angle < 90) { stage = 'down'; stageEl.innerText = 'Down'; stageEl.style.color = 'var(--accent-pink)'; }
+                    if (angle > 160 && stage === 'down') {
+                        stage = 'up'; stageEl.innerText = 'Up'; stageEl.style.color = 'var(--accent-cyan)';
+                        counter++; repCountEl.innerText = counter;
+                    }
+                }
+            } else if (currentExercise === 'lunge') {
+                const hip = landmarks[23];
+                const knee = landmarks[25];
+                const ankle = landmarks[27];
+                if (hip && knee && ankle) {
+                    const angle = calculateAngle(hip, knee, ankle);
+                    if (angle > 160) { stage = 'up'; stageEl.innerText = 'Up'; stageEl.style.color = 'var(--accent-cyan)'; }
+                    if (angle < 100 && stage === 'up') {
+                        stage = 'down'; stageEl.innerText = 'Down'; stageEl.style.color = 'var(--accent-pink)';
+                        counter++; repCountEl.innerText = counter;
+                    }
+                }
+            }
+        } else {
+            canvasCtx.restore();
+        }
+    }
+
+    const pose = new Pose({locateFile: (file) => {
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+    }});
+    
+    pose.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: true,
+        enableSegmentation: false,
+        smoothSegmentation: false,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+    });
+    
+    pose.onResults(onResults);
+
+    let useFrontCamera = true;
+    let camera = null;
+    
+    function startCamera() {
+        if (camera) { camera.stop(); }
+        camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await pose.send({image: videoElement});
+            },
+            width: 1280,
+            height: 720,
+            facingMode: useFrontCamera ? "user" : "environment"
+        });
+        camera.start();
+    }
+    
+    switchCamBtn.addEventListener('click', () => {
+        useFrontCamera = !useFrontCamera;
+        startCamera();
+    });
+
+    startCamera();
+
+    finishBtn.addEventListener('click', () => {
+        camera.stop();
+        if (counter > 0) {
+            const durationSec = Math.floor((new Date() - startTime) / 1000);
+            const calories = counter * 0.5; // rough estimate
+            fetch('/api/add_workout', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    exercise: currentExercise,
+                    reps: counter,
+                    duration: durationSec,
+                    calories: calories,
+                    form_score: 95,
+                    notes: "Logged via Web UI"
+                })
+            }).then(r => r.json()).then(data => {
+                window.location.href = '/dashboard';
+            });
+        } else {
+            window.location.href = '/dashboard';
+        }
+    });
+</script>
+{% endblock %}

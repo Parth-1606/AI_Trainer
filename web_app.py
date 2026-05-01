@@ -41,7 +41,7 @@ with app.app_context():
 def index():
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
-    return redirect(url_for('login'))
+    return render_template('landing.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -112,17 +112,22 @@ def dashboard():
     user_id = session['user_id']
     user = User.query.get(user_id)
     
-    # Sync from json
+    # Sync from json (both entries with username match AND old entries without username)
     if os.path.exists('workout_history.json'):
         try:
             with open('workout_history.json', 'r') as f:
                 history = json.load(f)
             for entry in history:
-                if entry.get('username') == user.username:
+                entry_user = entry.get('username', '')
+                # Match entries belonging to this user OR entries without a username
+                if entry_user == user.username or (not entry_user and entry.get('exercise')):
                     try:
                         date_obj = datetime.strptime(entry.get('date'), '%Y-%m-%d %H:%M')
                     except Exception:
-                        continue
+                        try:
+                            date_obj = datetime.strptime(entry.get('date'), '%Y-%m-%d %H:%M:%S')
+                        except Exception:
+                            continue
                     if not Workout.query.filter_by(user_id=user.id, date=date_obj, exercise_type=entry.get('exercise')).first():
                         dur_str = str(entry.get('duration', '0m 0s'))
                         dur_sec = 0
@@ -131,6 +136,10 @@ def dashboard():
                             m = int(parts[0].strip())
                             s = int(parts[1].replace('s','').strip())
                             dur_sec = m * 60 + s
+                        elif dur_str.isdigit():
+                            dur_sec = int(dur_str)
+                        
+                        form = entry.get('form_score', 100)
                         
                         w = Workout(
                             user_id=user.id,
@@ -139,7 +148,7 @@ def dashboard():
                             reps=int(entry.get('reps', 0)),
                             duration=dur_sec,
                             calories=float(entry.get('calories', 0)),
-                            form_score=100,
+                            form_score=form,
                             notes=entry.get('feedback', '')
                         )
                         db.session.add(w)
@@ -152,16 +161,43 @@ def dashboard():
     total_reps = db.session.query(db.func.sum(Workout.reps)).filter_by(user_id=user_id).scalar() or 0
     total_calories = db.session.query(db.func.sum(Workout.calories)).filter_by(user_id=user_id).scalar() or 0
     avg_form_score = db.session.query(db.func.avg(Workout.form_score)).filter_by(user_id=user_id).scalar() or 0
+    total_duration = db.session.query(db.func.sum(Workout.duration)).filter_by(user_id=user_id).scalar() or 0
     
     # Recent workouts
     recent_workouts = Workout.query.filter_by(user_id=user_id).order_by(Workout.date.desc()).limit(10).all()
     
-    # This week's activity
+    # This week's activity - find which days of the week have workouts
     week_ago = datetime.utcnow() - timedelta(days=7)
-    week_workouts = Workout.query.filter(
+    week_workouts_list = Workout.query.filter(
         Workout.user_id == user_id,
         Workout.date >= week_ago
     ).all()
+    # Get day-of-week numbers (0=Mon, 6=Sun) that have workouts this week
+    workout_weekdays = list(set(w.date.weekday() for w in week_workouts_list))
+    
+    # Per-exercise breakdown
+    exercise_stats = db.session.query(
+        Workout.exercise_type,
+        db.func.sum(Workout.reps),
+        db.func.sum(Workout.calories),
+        db.func.count(Workout.id),
+        db.func.avg(Workout.form_score)
+    ).filter_by(user_id=user_id).group_by(Workout.exercise_type).all()
+    
+    exercise_breakdown = []
+    for ex in exercise_stats:
+        exercise_breakdown.append({
+            'name': ex[0].replace('_', ' ').title() if ex[0] else 'Unknown',
+            'reps': int(ex[1] or 0),
+            'calories': round(float(ex[2] or 0), 1),
+            'sessions': ex[3],
+            'form_score': round(float(ex[4] or 0), 1)
+        })
+    
+    # Format total duration as human readable
+    dur_mins = int(total_duration) // 60
+    dur_secs = int(total_duration) % 60
+    total_duration_str = f"{dur_mins}m {dur_secs}s"
     
     return render_template('dashboard.html', 
                          user=user,
@@ -169,8 +205,11 @@ def dashboard():
                          total_reps=int(total_reps),
                          total_calories=round(total_calories, 1),
                          avg_form_score=round(avg_form_score, 1),
+                         total_duration_str=total_duration_str,
                          recent_workouts=recent_workouts,
-                         week_workouts=len(week_workouts),
+                         week_workouts=len(week_workouts_list),
+                         workout_weekdays=workout_weekdays,
+                         exercise_breakdown=exercise_breakdown,
                          datetime=datetime)
 
 @app.route('/calendar')
@@ -308,33 +347,7 @@ def start_trainer():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    try:
-        import subprocess
-        import sys
-        
-        python_exe = sys.executable
-        script_path = os.path.join(os.path.dirname(__file__), 'app.py')
-        
-        if not os.path.exists(script_path):
-            flash('Error: app.py not found! Make sure it\'s in the same folder.', 'error')
-            return redirect(url_for('dashboard'))
-            
-        username = session.get('username', 'User')
-        
-        if os.name == 'nt':
-            subprocess.Popen(
-                [python_exe, script_path, '--user', username],
-                creationflags=subprocess.CREATE_NEW_CONSOLE,
-                cwd=os.path.dirname(script_path)
-            )
-        else:
-            subprocess.Popen([python_exe, script_path, '--user', username])
-            
-    except Exception as e:
-        print(f"Error launching trainer: {e}")
-        
-    from flask import send_from_directory
-    return send_from_directory(os.path.dirname(__file__), 'redirect.html')
+    return render_template('web_trainer.html')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

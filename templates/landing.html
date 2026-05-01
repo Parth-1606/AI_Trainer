@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitLynx - AI-Powered Fitness Trainer</title>
+    <meta name="description" content="FitLynx uses computer vision AI to track your reps, analyze your form, and coach you in real-time. Your perfect AI trainer is just a click away.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0b0e14;
+            --card: #141820;
+            --teal: #00f2ff;
+            --green: #00e676;
+            --purple: #7c3aed;
+            --muted: #6b7280;
+            --border: rgba(255,255,255,0.06);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        /* ===== NAVBAR ===== */
+        .nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 48px;
+            height: 70px;
+            background: rgba(11,14,20,0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-brand {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .nav-brand .fit { color: white; }
+        .nav-brand .lynx { color: var(--teal); }
+        .nav-brand svg { color: var(--teal); }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: white; }
+        
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .btn-ghost {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.06); }
+        .btn-solid {
+            padding: 10px 24px;
+            border: 1.5px solid rgba(255,255,255,0.2);
+            background: transparent;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .btn-solid:hover {
+            background: white;
+            color: #000;
+            border-color: white;
+        }
+        
+        /* ===== HERO ===== */
+        .hero {
+            padding: 160px 48px 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 100%;
+            background: radial-gradient(ellipse at 50% 0%, rgba(0,242,255,0.06) 0%, transparent 60%),
+                        radial-gradient(ellipse at 20% 80%, rgba(124,58,237,0.04) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .hero-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(0,242,255,0.2);
+            background: rgba(0,242,255,0.06);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--teal);
+            margin-bottom: 28px;
+        }
+        .hero h1 {
+            font-size: clamp(2.5rem, 5.5vw, 4.2rem);
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -2px;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--muted);
+            max-width: 550px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+        .hero-cta {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin-bottom: 80px;
+        }
+        .btn-primary {
+            padding: 16px 36px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--teal), var(--green));
+            color: #000;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0,242,255,0.3);
+        }
+        .btn-outline-hero {
+            padding: 16px 36px;
+            border: 1.5px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            background: transparent;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .btn-outline-hero:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.3);
+        }
+        
+        /* ===== SERVICE CARDS ===== */
+        .services {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 48px;
+            position: relative;
+            z-index: 1;
+        }
+        .svc-card {
+            border-radius: 24px;
+            overflow: hidden;
+            background: var(--card);
+            border: 1px solid var(--border);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
+        }
+        .svc-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(0,242,255,0.15);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        }
+        .svc-img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+            display: block;
+        }
+        .svc-card h3 {
+            padding: 22px 20px 24px;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+        
+        /* ===== STATS ===== */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            padding: 80px 48px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-val {
+            font-size: 2.8rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, var(--teal), var(--green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+        
+        /* ===== FEATURES ===== */
+        .features {
+            padding: 60px 48px 100px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .features-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .features-header h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 12px;
+        }
+        .features-header p {
+            color: var(--muted);
+            font-size: 1.05rem;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .feat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px 28px;
+            transition: all 0.3s;
+        }
+        .feat-card:hover {
+            border-color: rgba(0,242,255,0.12);
+            transform: translateY(-4px);
+        }
+        .feat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 18px;
+        }
+        .feat-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .feat-card p {
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+        
+        /* ===== CTA SECTION ===== */
+        .cta-section {
+            text-align: center;
+            padding: 80px 48px;
+            position: relative;
+        }
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at 50% 50%, rgba(0,242,255,0.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .cta-section h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 14px;
+        }
+        .cta-section p {
+            color: var(--muted);
+            font-size: 1.05rem;
+            margin-bottom: 36px;
+        }
+        
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            padding: 60px 48px 30px;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 40px;
+            max-width: 1100px;
+            margin: 0 auto 40px;
+        }
+        .footer-brand {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        .footer-brand .fit { color: white; }
+        .footer-brand .lynx { color: var(--teal); }
+        .footer-desc {
+            color: var(--muted);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+        .footer-social {
+            display: flex;
+            gap: 12px;
+        }
+        .footer-social a {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .footer-social a:hover {
+            background: rgba(0,242,255,0.1);
+            border-color: var(--teal);
+            color: var(--teal);
+        }
+        .footer-col h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+            color: white;
+        }
+        .footer-col a {
+            display: block;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            padding: 5px 0;
+            transition: color 0.2s;
+        }
+        .footer-col a:hover { color: white; }
+        .footer-bottom {
+            border-top: 1px solid var(--border);
+            padding-top: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+        .footer-badges {
+            display: flex;
+            gap: 20px;
+        }
+        
+        /* ===== SCROLL ANIM ===== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .nav { padding: 0 20px; }
+            .nav-links { display: none; }
+            .hero { padding: 120px 20px 60px; }
+            .hero h1 { font-size: 2.2rem; }
+            .services { grid-template-columns: 1fr; padding: 0 20px; }
+            .stats { flex-direction: column; gap: 30px; padding: 40px 20px; }
+            .feature-grid { grid-template-columns: 1fr; }
+            .features { padding: 40px 20px; }
+            .footer-grid { grid-template-columns: 1fr; gap: 30px; }
+            .footer-bottom { flex-direction: column; gap: 20px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="nav">
+        <a href="/" class="nav-brand">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                <path d="M6 8H5a4 4 0 0 0 0 8h1"></path>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+            </svg>
+            <span class="fit">Fit</span><span class="lynx">Lynx</span>
+        </a>
+        
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#services">Services</a>
+            <a href="#stats">Results</a>
+            <a href="#cta">Get Started</a>
+        </div>
+        
+        <div class="nav-actions">
+            <a href="{{ url_for('login') }}" class="btn-ghost">Login</a>
+            <a href="{{ url_for('signup') }}" class="btn-solid">Sign Up Free</a>
+        </div>
+    </nav>
+    
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-badge">🔥 Powered by Computer Vision AI</div>
+        <h1>Your perfect AI coach is just a click away</h1>
+        <p>FitLynx uses real-time pose estimation to count your reps, analyze your form, and give instant coaching feedback — all through your webcam.</p>
+        <div class="hero-cta">
+            <a href="{{ url_for('signup') }}" class="btn-primary">Start Training Free →</a>
+            <a href="#features" class="btn-outline-hero">Learn More</a>
+        </div>
+        
+        <!-- Service Cards -->
+        <div class="services reveal" id="services">
+            <div class="svc-card">
+                <img src="{{ url_for('static', filename='images/ai_training.png') }}" alt="AI Training" class="svc-img">
+                <h3>AI Rep Counting</h3>
+            </div>
+            <div class="svc-card">
+                <img src="{{ url_for('static', filename='images/nutrition.png') }}" alt="Nutrition Tracking" class="svc-img">
+                <h3>Nutrition Tracking</h3>
+            </div>
+            <div class="svc-card">
+                <img src="{{ url_for('static', filename='images/form_analysis.png') }}" alt="Form Analysis" class="svc-img">
+                <h3>Form Analysis</h3>
+            </div>
+        </div>
+    </section>
+    
+    <!-- STATS -->
+    <section class="stats reveal" id="stats">
+        <div class="stat">
+            <div class="stat-val">5+</div>
+            <div class="stat-label">Exercise Types</div>
+        </div>
+        <div class="stat">
+            <div class="stat-val">98%</div>
+            <div class="stat-label">Form Accuracy</div>
+        </div>
+        <div class="stat">
+            <div class="stat-val">Real-time</div>
+            <div class="stat-label">AI Feedback</div>
+        </div>
+        <div class="stat">
+            <div class="stat-val">Free</div>
+            <div class="stat-label">To Use</div>
+        </div>
+    </section>
+    
+    <!-- FEATURES -->
+    <section class="features reveal" id="features">
+        <div class="features-header">
+            <h2>Everything you need to train smarter</h2>
+            <p>Built with MediaPipe, OpenCV, and real-time biomechanics</p>
+        </div>
+        <div class="feature-grid">
+            <div class="feat-card">
+                <div class="feat-icon" style="background:rgba(0,242,255,0.1); color:var(--teal);">🎯</div>
+                <h3>Pose Estimation</h3>
+                <p>33 body landmarks tracked in real-time to measure every joint angle during your workout.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon" style="background:rgba(0,230,118,0.1); color:var(--green);">📊</div>
+                <h3>Rep Counter</h3>
+                <p>Automatic rep detection with smart thresholds calibrated for each exercise type.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon" style="background:rgba(124,58,237,0.1); color:var(--purple);">🧠</div>
+                <h3>Form Scoring</h3>
+                <p>Get a percentage-based form score after each session with detailed feedback on mistakes.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon" style="background:rgba(255,152,0,0.1); color:#ff9800;">🔥</div>
+                <h3>Calorie Tracking</h3>
+                <p>Calories burned are calculated per-rep based on the exercise type and your workout duration.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon" style="background:rgba(255,77,77,0.1); color:#ff4d4d;">📈</div>
+                <h3>Progress Dashboard</h3>
+                <p>Track your workout history with beautiful charts showing reps, calories, and consistency.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon" style="background:rgba(0,242,255,0.1); color:var(--teal);">🤖</div>
+                <h3>AI Coach Modes</h3>
+                <p>Choose from multiple AI coaching personalities that motivate you with real-time voice feedback.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA -->
+    <section class="cta-section reveal" id="cta">
+        <h2>Ready to transform your training?</h2>
+        <p>Join FitLynx and let AI be your personal fitness coach.</p>
+        <a href="{{ url_for('signup') }}" class="btn-primary" style="font-size:1.1rem; padding:18px 44px;">Create Free Account →</a>
+    </section>
+    
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div>
+                <div class="footer-brand"><span class="fit">Fit</span><span class="lynx">Lynx</span></div>
+                <div class="footer-desc">AI-powered fitness training using computer vision. Track reps, analyze form, and get real-time coaching through your webcam.</div>
+                <div class="footer-social">
+                    <a href="#">📷</a>
+                    <a href="#">💼</a>
+                    <a href="https://github.com/Parth-1606/AI_Trainer" target="_blank">🐙</a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Product</h4>
+                <a href="#features">Features</a>
+                <a href="{{ url_for('signup') }}">Get Started</a>
+                <a href="#stats">Results</a>
+                <a href="#">Pricing</a>
+            </div>
+            <div class="footer-col">
+                <h4>Exercises</h4>
+                <a href="#">Bicep Curls</a>
+                <a href="#">Squats</a>
+                <a href="#">Push-ups</a>
+                <a href="#">Lunges</a>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <a href="#">Terms of Service</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Cookie Policy</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 FitLynx. All rights reserved.</span>
+            <div class="footer-badges">
+                <span>🔒 Secure</span>
+                <span>🌍 Open Source</span>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Scroll reveal
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+        
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                const t = document.querySelector(a.getAttribute('href'));
+                if (t) t.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+</html>

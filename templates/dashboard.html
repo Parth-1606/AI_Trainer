@@ -326,6 +326,59 @@
     }
     .log-details h4 { margin: 0; font-size: 0.95rem; }
     .log-details p { margin: 3px 0 0; font-size: 0.8rem; color: var(--text-muted); }
+    
+    @media (max-width: 768px) {
+        .layout-wrapper {
+            flex-direction: column;
+            height: auto;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 100%;
+            height: auto;
+            flex-direction: row;
+            padding: 10px;
+            border-right: none;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+        .sidebar-logo, .profile-avatar {
+            display: none;
+        }
+        .sidebar-item {
+            width: auto;
+            padding: 8px 12px;
+            flex-direction: row;
+            white-space: nowrap;
+        }
+        .main-panel {
+            padding: 15px;
+            overflow-y: visible;
+        }
+        .grid-container {
+            display: flex;
+            flex-direction: column;
+        }
+        .vitals-grid {
+            grid-template-columns: 1fr;
+        }
+        .topbar {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        .top-nav {
+            overflow-x: auto;
+            width: 100%;
+            padding-bottom: 10px;
+        }
+        .activity-rings {
+            flex-direction: column;
+            gap: 20px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -361,26 +414,26 @@
         </div>
         
         <div class="grid-container">
-            <!-- VITALS -->
+            <!-- WORKOUT STATS (replaces fake vitals) -->
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title">My Vitals</div>
-                    <div style="color: var(--text-muted); font-size: 0.8rem;">Real-time ...</div>
+                    <div class="panel-title">Workout Stats</div>
+                    <div style="color: var(--text-muted); font-size: 0.8rem;">From Trainer</div>
                 </div>
                 <div class="vitals-grid">
                     <div class="vital-card" style="grid-column: span 2;">
-                        <div class="vital-label"><span style="color:#ff4d4d">❤️</span> Heart Rate</div>
-                        <div class="vital-val">72 <span style="font-size:1rem; color:var(--text-muted); font-weight:normal;">bpm</span></div>
-                        <!-- Mini fake chart -->
-                        <div style="height:30px; margin-top:10px; background: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 20\"><polyline points=\"0,15 10,12 20,18 30,5 40,15 50,14 60,18 70,8 80,15 90,12 100,16\" fill=\"none\" stroke=\"%23ff4d4d\" stroke-width=\"2\"/></svg>') no-repeat center/cover;"></div>
+                        <div class="vital-label"><span style="color:var(--accent-teal)">⏱️</span> Total Training Time</div>
+                        <div class="vital-val">{{ total_duration_str }}</div>
+                        <div style="margin-top:8px; font-size:0.8rem; color:var(--text-muted);">across {{ total_workouts }} sessions</div>
                     </div>
                     <div class="vital-card">
-                        <div class="vital-label"><span style="color:var(--accent-teal)">💧</span> SpO2</div>
-                        <div class="vital-val">98%</div>
+                        <div class="vital-label"><span style="color:var(--accent-green)">📊</span> This Week</div>
+                        <div class="vital-val">{{ week_workouts }}</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">sessions</div>
                     </div>
                     <div class="vital-card">
-                        <div class="vital-label"><span style="color:var(--accent-green)">🧘</span> Stress</div>
-                        <div class="vital-val" style="color:var(--accent-green)">Low <span style="font-size:1rem; float:right; color:white;">28</span></div>
+                        <div class="vital-label"><span style="color:var(--accent-orange)">⚡</span> Avg Form</div>
+                        <div class="vital-val" style="color:{% if avg_form_score >= 90 %}var(--accent-green){% elif avg_form_score >= 70 %}var(--accent-orange){% else %}#ff4d4d{% endif %}">{{ avg_form_score }}%</div>
                     </div>
                 </div>
             </div>
@@ -389,18 +442,18 @@
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title">Activity Summary</div>
-                    <div style="color: var(--text-muted);">...</div>
+                    <div style="color: var(--text-muted); font-size: 0.8rem;">All Time</div>
                 </div>
                 <div class="activity-rings">
                     <div style="text-align:center;">
-                        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">Steps</div>
+                        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">Workouts</div>
                         <div class="ring-container">
                             <svg class="ring-svg" viewBox="0 0 100 100">
                                 <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                                <circle class="ring-progress" cx="50" cy="50" r="40" stroke="var(--accent-teal)" stroke-dashoffset="60"></circle>
+                                <circle class="ring-progress" cx="50" cy="50" r="40" stroke="var(--accent-teal)" stroke-dashoffset="{{ 251.2 - (251.2 * ([total_workouts, 50]|min / 50)) }}"></circle>
                             </svg>
-                            <div class="ring-text">8,412</div>
-                            <div class="ring-sub">/10k</div>
+                            <div class="ring-text">{{ total_workouts }}</div>
+                            <div class="ring-sub">total</div>
                         </div>
                     </div>
                     <div style="text-align:center;">
@@ -408,8 +461,7 @@
                         <div class="ring-container">
                             <svg class="ring-svg" viewBox="0 0 100 100">
                                 <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                                <!-- Map total_calories to a ring, assuming max 2000 -->
-                                <circle class="ring-progress" cx="50" cy="50" r="40" stroke="var(--accent-green)" stroke-dashoffset="{{ 251.2 - (251.2 * (total_calories / 2000)) }}"></circle>
+                                <circle class="ring-progress" cx="50" cy="50" r="40" stroke="var(--accent-green)" stroke-dashoffset="{{ 251.2 - (251.2 * ([total_calories, 500]|min / 500)) }}"></circle>
                             </svg>
                             <div class="ring-text">{{ total_calories }}</div>
                             <div class="ring-sub">kcal</div>
@@ -420,7 +472,7 @@
                         <div class="ring-container">
                             <svg class="ring-svg" viewBox="0 0 100 100">
                                 <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                                <circle class="ring-progress" cx="50" cy="50" r="40" stroke="var(--accent-orange)" stroke-dashoffset="{{ 251.2 - (251.2 * (total_reps / 500)) }}"></circle>
+                                <circle class="ring-progress" cx="50" cy="50" r="40" stroke="var(--accent-orange)" stroke-dashoffset="{{ 251.2 - (251.2 * ([total_reps, 500]|min / 500)) }}"></circle>
                             </svg>
                             <div class="ring-text">{{ total_reps }}</div>
                             <div class="ring-sub">reps</div>
@@ -444,39 +496,60 @@
                     </div>
                 </div>
                 
-                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">Suggested Exercises</div>
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">
+                    {% if exercise_breakdown %}Your Exercises{% else %}Suggested Exercises{% endif %}
+                </div>
                 <div class="workout-list">
-                    <div class="workout-item">
-                        <div class="workout-icon">🏋️</div>
-                        <div style="flex:1;">
-                            <div style="font-weight:600; color:white;">Squats</div>
-                            <div style="font-size:0.8rem; color:var(--text-muted);">3 sets / 10 reps</div>
+                    {% if exercise_breakdown %}
+                        {% for ex in exercise_breakdown[:3] %}
+                        <div class="workout-item">
+                            <div class="workout-icon">
+                                {% if 'curl' in ex.name.lower() %}💪
+                                {% elif 'squat' in ex.name.lower() %}🏋️
+                                {% elif 'push' in ex.name.lower() %}🫸
+                                {% elif 'lunge' in ex.name.lower() %}🦵
+                                {% else %}⚡{% endif %}
+                            </div>
+                            <div style="flex:1;">
+                                <div style="font-weight:600; color:white;">{{ ex.name }}</div>
+                                <div style="font-size:0.8rem; color:var(--text-muted);">{{ ex.sessions }} sessions / {{ ex.reps }} reps total</div>
+                            </div>
+                            <div style="color:var(--text-muted);">{{ ex.form_score }}%</div>
                         </div>
-                        <div style="color:var(--text-muted);">›</div>
-                    </div>
-                    <div class="workout-item">
-                        <div class="workout-icon">💪</div>
-                        <div style="flex:1;">
-                            <div style="font-weight:600; color:white;">Bicep Curls</div>
-                            <div style="font-size:0.8rem; color:var(--text-muted);">3 sets / 12 reps</div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="workout-item">
+                            <div class="workout-icon">🏋️</div>
+                            <div style="flex:1;">
+                                <div style="font-weight:600; color:white;">Squats</div>
+                                <div style="font-size:0.8rem; color:var(--text-muted);">3 sets / 10 reps</div>
+                            </div>
+                            <div style="color:var(--text-muted);">›</div>
                         </div>
-                        <div style="color:var(--text-muted);">›</div>
-                    </div>
+                        <div class="workout-item">
+                            <div class="workout-icon">💪</div>
+                            <div style="flex:1;">
+                                <div style="font-weight:600; color:white;">Bicep Curls</div>
+                                <div style="font-size:0.8rem; color:var(--text-muted);">3 sets / 12 reps</div>
+                            </div>
+                            <div style="color:var(--text-muted);">›</div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
             
-            <!-- CALENDAR / BOTTOM LEFT -->
+            <!-- WEEKLY CALENDAR -->
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title">Workout Calendar</div>
-                    <div style="color: var(--text-muted);">...</div>
+                    <div style="color: var(--text-muted); font-size: 0.8rem;">This Week</div>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-top:10px;">
                     {% for day in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}
                     <div style="text-align:center;">
                         <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">{{ day }}</div>
                         <div style="width:30px; height:120px; background:rgba(255,255,255,0.05); border-radius:15px; position:relative; overflow:hidden;">
-                            {% if loop.index in [2,4,5] %}
+                            {% if (loop.index0) in workout_weekdays %}
                                 <div style="position:absolute; bottom:0; left:0; width:100%; height:60%; background:var(--accent-teal); border-radius:15px; display:flex; align-items:center; justify-content:center; color:#000;">✓</div>
                             {% endif %}
                         </div>
@@ -485,34 +558,52 @@
                 </div>
             </div>
             
-            <!-- ANALYTICS -->
+            <!-- PERFORMANCE ANALYTICS -->
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title">Performance Analytics</div>
-                    <div style="color: var(--text-muted);">...</div>
+                    <div style="color: var(--text-muted); font-size: 0.8rem;">Real Data</div>
                 </div>
-                <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">
-                    <span style="color:var(--accent-teal);">⚡ Form Score</span> avg {{ avg_form_score }}%
+                <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">
+                    <span style="color:var(--accent-teal);">⚡ Form Score</span> avg <strong style="color:white;">{{ avg_form_score }}%</strong>
                 </div>
-                <div style="height:70px; background: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 20\"><path d=\"M0,18 L20,10 L40,15 L60,5 L80,12 L100,8\" fill=\"none\" stroke=\"%2300f2ff\" stroke-width=\"2\"/></svg>') no-repeat center/100% 100%;"></div>
                 
-                <div style="font-size:0.85rem; color:var(--text-muted); margin:20px 0 10px;">
-                    <span style="color:var(--accent-green);">📈 Consistency</span>
+                {% if exercise_breakdown %}
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Per-Exercise Breakdown</div>
+                {% for ex in exercise_breakdown %}
+                <div style="margin-bottom: 12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span style="font-size:0.85rem; font-weight:500;">{{ ex.name }}</span>
+                        <span style="font-size:0.8rem; color:var(--accent-teal);">{{ ex.form_score }}%</span>
+                    </div>
+                    <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;">
+                        <div style="height:100%; width:{{ ex.form_score }}%; background: linear-gradient(90deg, var(--accent-teal), var(--accent-green)); border-radius:3px;"></div>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">{{ ex.reps }} reps · {{ ex.calories }} kcal · {{ ex.sessions }} sessions</div>
                 </div>
-                <div style="height:50px; background: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 20\"><path d=\"M0,5 L20,6 L40,8 L60,10 L80,15 L100,18\" fill=\"none\" stroke=\"%2300e676\" stroke-width=\"2\"/></svg>') no-repeat center/100% 100%;"></div>
+                {% endfor %}
+                {% else %}
+                <div style="color: var(--text-muted); text-align:center; padding: 20px;">Complete a workout to see analytics</div>
+                {% endif %}
             </div>
             
             <!-- EXERCISE LOG -->
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title">Exercise Log</div>
-                    <div style="color: var(--text-muted);">...</div>
+                    <div style="color: var(--text-muted); font-size: 0.8rem;">Recent</div>
                 </div>
                 <div style="overflow-y:auto; flex:1;">
                     {% if recent_workouts %}
-                        {% for workout in recent_workouts[:4] %}
+                        {% for workout in recent_workouts[:5] %}
                         <div class="log-item">
-                            <div class="log-icon">⚡</div>
+                            <div class="log-icon">
+                                {% if 'curl' in workout.exercise_type %}💪
+                                {% elif 'squat' in workout.exercise_type %}🏋️
+                                {% elif 'push' in workout.exercise_type %}🫸
+                                {% elif 'lunge' in workout.exercise_type %}🦵
+                                {% else %}⚡{% endif %}
+                            </div>
                             <div class="log-details" style="flex:1;">
                                 <h4>{{ workout.exercise_type.replace('_', ' ').title() }}</h4>
                                 <p>{{ workout.reps }} reps • {{ workout.calories }} kcal • {{ workout.form_score }}% form</p>
@@ -523,7 +614,7 @@
                         </div>
                         {% endfor %}
                     {% else %}
-                        <div style="color: var(--text-muted); text-align:center; padding: 20px;">No recent workouts found.</div>
+                        <div style="color: var(--text-muted); text-align:center; padding: 20px;">No workouts yet. Launch the trainer to start!</div>
                     {% endif %}
                 </div>
             </div>
@@ -531,25 +622,4 @@
         </div>
     </div>
 </div>
-
-<script>
-    // Add interactive click handlers to sidebar and top nav items
-    document.querySelectorAll('.sidebar-item:not([href*="logout"]):not([href*="calendar"])').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            // Remove active class from all
-            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-            // Add to clicked
-            this.classList.add('active');
-        });
-    });
-    
-    document.querySelectorAll('.top-nav a').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.top-nav a').forEach(el => el.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-</script>
 {% endblock %}

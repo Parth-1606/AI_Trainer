@@ -114,5 +114,35 @@
     "calories": 0,
     "duration": "0m 7s",
     "feedback": "None"
+  },
+  {
+    "username": "parth",
+    "coach": "AI",
+    "date": "2026-04-24 23:17",
+    "exercise": "squat",
+    "reps": 0,
+    "calories": 0.4,
+    "duration": "0m 19s",
+    "feedback": "None"
+  },
+  {
+    "username": "parth",
+    "coach": "AI",
+    "date": "2026-04-25 17:22",
+    "exercise": "squat",
+    "reps": 0,
+    "calories": 0,
+    "duration": "0m 3s",
+    "feedback": "None"
+  },
+  {
+    "username": "parth",
+    "coach": "AI",
+    "date": "2026-05-01 12:30",
+    "exercise": "squat",
+    "reps": 0,
+    "calories": 0,
+    "duration": "0m 13s",
+    "feedback": "None"
   }
 ]

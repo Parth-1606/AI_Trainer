@@ -8,3 +8,5 @@ frontend/dist/
 frontend/node_modules/
 .env
 *.log
+
+.vercel

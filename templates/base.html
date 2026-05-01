@@ -160,6 +160,22 @@
             animation: fadeIn 0.5s ease forwards;
         }
 
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 1rem;
+            }
+            .container {
+                padding: 1rem;
+            }
+        }
+
         {% block extra_css %}{% endblock %}
     </style>
 </head>
@@ -172,7 +188,7 @@
                 <path d="M6 8H5a4 4 0 0 0 0 8h1"></path>
                 <line x1="2" y1="12" x2="22" y2="12"></line>
             </svg>
-            AI TRAINER PRO
+            <span style="color: white;">Fit</span><span style="color: var(--accent-cyan);">Lynx</span>
         </div>
         <div class="nav-links">
             {% if session.get('user_id') %}

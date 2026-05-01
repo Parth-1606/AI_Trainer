@@ -54,6 +54,15 @@
     }
     .lb-name { flex: 1; font-weight: 500; }
     .lb-score { font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 768px) {
+        .community-grid { grid-template-columns: 1fr; }
+        .layout-wrapper { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; flex-direction: row; overflow-x: auto; padding: 10px; border-right: none; border-bottom: 1px solid var(--border-color); justify-content: flex-start; gap: 10px; }
+        .sidebar-item { padding: 8px 12px; flex-direction: row; white-space: nowrap; }
+        .sidebar-logo, .profile-avatar { display: none; }
+        .topbar { flex-direction: column; gap: 15px; align-items: flex-start; }
+        .top-nav { overflow-x: auto; width: 100%; padding-bottom: 10px; }
+    }
 </style>
 {% endblock %}
 
