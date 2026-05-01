@@ -1,6 +1,6 @@
 <!-- Reusable Sidebar -->
 <div class="sidebar">
-    <div class="sidebar-logo">
+    <div class="sidebar-logo desktop-only">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
             <path d="M6 8H5a4 4 0 0 0 0 8h1"></path>
@@ -8,34 +8,41 @@
         </svg>
     </div>
     
-    <a href="{{ url_for('dashboard') }}" class="sidebar-item {{ 'active' if active_page == 'dashboard' }}">
-        <div class="sidebar-icon">⊞</div>
-        <span class="sidebar-text">Dashboard</span>
-    </a>
-    <a href="{{ url_for('calendar') }}" class="sidebar-item {{ 'active' if active_page == 'workouts' }}">
-        <div class="sidebar-icon">💪</div>
-        <span class="sidebar-text">Workouts</span>
-    </a>
-    <a href="{{ url_for('vitals') }}" class="sidebar-item {{ 'active' if active_page == 'vitals' }}">
-        <div class="sidebar-icon">❤️</div>
-        <span class="sidebar-text">Vitals</span>
-    </a>
-    <a href="{{ url_for('community') }}" class="sidebar-item {{ 'active' if active_page == 'community' }}">
-        <div class="sidebar-icon">👥</div>
-        <span class="sidebar-text">Community</span>
-    </a>
-    <a href="{{ url_for('nutrition') }}" class="sidebar-item {{ 'active' if active_page == 'nutrition' }}">
-        <div class="sidebar-icon">🥗</div>
-        <span class="sidebar-text">Nutrition</span>
-    </a>
-    <a href="{{ url_for('settings') }}" class="sidebar-item {{ 'active' if active_page == 'settings' }}">
-        <div class="sidebar-icon">⚙️</div>
-        <span class="sidebar-text">Settings</span>
-    </a>
-    <a href="{{ url_for('logout') }}" class="sidebar-item" style="margin-top: auto; color: #ff4d4d;">
-        <div class="sidebar-icon">🚪</div>
-        <span class="sidebar-text">Logout</span>
-    </a>
+    <div class="mobile-header" style="width: 100%; justify-content: space-between; align-items: center;">
+        <div style="font-size: 1.2rem; font-weight: 800; color: white;">Fit<span style="color:var(--accent-teal);">Lynx</span></div>
+        <button id="hamburgerBtn" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">☰</button>
+    </div>
+    
+    <div class="sidebar-links" id="sidebarLinks">
+        <a href="{{ url_for('dashboard') }}" class="sidebar-item {{ 'active' if active_page == 'dashboard' }}">
+            <div class="sidebar-icon">📊</div>
+            <span class="sidebar-text">Dashboard</span>
+        </a>
+        <a href="{{ url_for('calendar') }}" class="sidebar-item {{ 'active' if active_page == 'workouts' }}">
+            <div class="sidebar-icon">💪</div>
+            <span class="sidebar-text">Workouts</span>
+        </a>
+        <a href="{{ url_for('vitals') }}" class="sidebar-item {{ 'active' if active_page == 'vitals' }}">
+            <div class="sidebar-icon">❤️</div>
+            <span class="sidebar-text">Vitals</span>
+        </a>
+        <a href="{{ url_for('community') }}" class="sidebar-item {{ 'active' if active_page == 'community' }}">
+            <div class="sidebar-icon">👥</div>
+            <span class="sidebar-text">Community</span>
+        </a>
+        <a href="{{ url_for('nutrition') }}" class="sidebar-item {{ 'active' if active_page == 'nutrition' }}">
+            <div class="sidebar-icon">🥗</div>
+            <span class="sidebar-text">Nutrition</span>
+        </a>
+        <a href="{{ url_for('settings') }}" class="sidebar-item {{ 'active' if active_page == 'settings' }}">
+            <div class="sidebar-icon">⚙️</div>
+            <span class="sidebar-text">Settings</span>
+        </a>
+        <a href="{{ url_for('logout') }}" class="sidebar-item" style="margin-top: auto; color: #ff4d4d;">
+            <div class="sidebar-icon">🚪</div>
+            <span class="sidebar-text">Logout</span>
+        </a>
+    </div>
     
     <!-- Profile Avatar with Popup -->
     <div style="position: relative; margin-top: 10px;">
@@ -140,4 +147,13 @@
             popup.classList.remove('profile-popup-show');
         }
     });
+
+    // Mobile Hamburger Toggle
+    var hamburgerBtn = document.getElementById('hamburgerBtn');
+    var sidebarLinks = document.getElementById('sidebarLinks');
+    if (hamburgerBtn && sidebarLinks) {
+        hamburgerBtn.addEventListener('click', function() {
+            sidebarLinks.classList.toggle('show');
+        });
+    }
 </script>
