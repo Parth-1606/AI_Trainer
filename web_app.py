@@ -15,11 +15,11 @@ try:
 except Exception:
     is_writable = False
 
+app = Flask(__name__) if is_writable else Flask(__name__, instance_path='/tmp/instance')
+
 if is_writable:
-    app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fitness_tracker.db'
 else:
-    app = Flask(__name__, instance_path='/tmp/instance')
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/fitness_tracker.db'
 
 app.config['SECRET_KEY'] = 'your-secret-key-here-change-in-production'
