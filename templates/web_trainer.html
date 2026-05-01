@@ -9,7 +9,8 @@
         flex-direction: column;
         align-items: center;
         gap: 20px;
-        margin-top: 20px;
+        margin-top: 10px;
+        padding-bottom: 50px;
     }
     .video-wrapper {
         position: relative;
@@ -70,8 +71,13 @@
     }
     .controls {
         display: flex;
-        gap: 15px;
+        gap: 10px;
         flex-wrap: wrap;
+        width: 100%;
+    }
+    .controls select, .controls button {
+        flex: 1;
+        min-width: 120px;
     }
     #finish-btn {
         display: none;
@@ -270,12 +276,12 @@
     }});
     
     pose.setOptions({
-        modelComplexity: 1,
+        modelComplexity: 0, // Lower complexity for faster, jitter-free phone performance
         smoothLandmarks: true,
         enableSegmentation: false,
         smoothSegmentation: false,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.7
     });
     
     pose.onResults(onResults);
