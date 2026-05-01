@@ -126,6 +126,19 @@
         margin-bottom: 6px;
         font-weight: 500;
     }
+    
+    @media (max-width: 768px) {
+        .settings-grid {
+            grid-template-columns: 1fr;
+        }
+        .profile-edit {
+            flex-direction: column;
+            text-align: center;
+        }
+        div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
 </style>
 {% endblock %}
 

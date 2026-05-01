@@ -372,21 +372,4 @@
     </div>
 </div>
 
-<script>
-    document.querySelectorAll('.sidebar-item:not([href*="logout"]):not([href*="dashboard"])').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-    
-    document.querySelectorAll('.top-nav a:not([href*="dashboard"])').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.querySelectorAll('.top-nav a').forEach(el => el.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-</script>
 {% endblock %}
