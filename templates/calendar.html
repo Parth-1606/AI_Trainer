@@ -226,6 +226,52 @@
         flex-direction: column;
         border: 1px solid var(--border-color);
     }
+    
+    @media (max-width: 768px) {
+        body {
+            height: auto;
+            overflow-y: auto;
+        }
+        .layout-wrapper {
+            flex-direction: column;
+            height: auto;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 100%;
+            height: auto;
+            flex-direction: row;
+            padding: 10px;
+            border-right: none;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+        .sidebar-logo, .profile-avatar {
+            display: none;
+        }
+        .sidebar-item {
+            width: auto;
+            padding: 8px 12px;
+            flex-direction: row;
+            white-space: nowrap;
+        }
+        .main-panel {
+            padding: 15px;
+            overflow-y: visible;
+        }
+        .topbar {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        .top-nav {
+            overflow-x: auto;
+            width: 100%;
+            padding-bottom: 10px;
+        }
+    }
 </style>
 {% endblock %}
 

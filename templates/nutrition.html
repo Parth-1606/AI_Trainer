@@ -68,6 +68,15 @@
         background: linear-gradient(90deg, var(--accent-teal), #0088ff);
         transition: width 0.5s ease;
     }
+    
+    @media (max-width: 768px) {
+        .macro-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        .main-panel > div[style*="display:grid"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
 </style>
 {% endblock %}
 
