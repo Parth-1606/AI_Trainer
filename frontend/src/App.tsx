@@ -151,7 +151,7 @@ function VideoPanel({ reps, setReps, stage, setStage, exercise, setExercise, set
   }, []);
 
   return (
-    <div className="flex-1 bg-bg-panel rounded-2xl overflow-hidden border border-bg-panel-light relative min-h-[600px] shadow-lg flex flex-col">
+    <div className="flex-1 bg-bg-panel rounded-2xl overflow-hidden border border-bg-panel-light relative min-h-[400px] md:min-h-[600px] shadow-lg flex flex-col">
       <div className="absolute top-0 inset-x-0 p-6 flex justify-between items-center z-20">
         <div className="flex items-center gap-4">
           <div className="absolute top-0 left-0 h-1 bg-bg-panel-light w-full">
@@ -169,28 +169,28 @@ function VideoPanel({ reps, setReps, stage, setStage, exercise, setExercise, set
         <video ref={videoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover hidden"></video>
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover"></canvas>
 
-        <div className="absolute bottom-24 right-8 w-72 bg-bg-panel/90 backdrop-blur-md rounded-xl p-4 border border-bg-panel-light shadow-2xl">
+        <div className="absolute bottom-20 md:bottom-24 right-4 md:right-8 w-[calc(100%-2rem)] max-w-sm md:w-72 bg-bg-panel/90 backdrop-blur-md rounded-xl p-3 md:p-4 border border-bg-panel-light shadow-2xl">
           <div className="flex items-center gap-3 mb-2">
             <div className="relative">
-              <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop" alt="Coach Nova" className="w-10 h-10 rounded-full border-2 border-accent-cyan object-cover" />
-              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-accent-cyan rounded-full border-2 border-bg-panel"></div>
+              <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop" alt="Coach Nova" className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-accent-cyan object-cover" />
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 md:w-3.5 md:h-3.5 bg-accent-cyan rounded-full border-2 border-bg-panel"></div>
             </div>
             <div>
-              <h4 className="text-sm font-bold tracking-wide uppercase">Coach Nova</h4>
+              <h4 className="text-xs md:text-sm font-bold tracking-wide uppercase">Coach Nova</h4>
             </div>
           </div>
-          <div className="bg-bg-panel-light/50 rounded-lg p-3 text-sm text-text-secondary leading-relaxed border border-white/5">
+          <div className="bg-bg-panel-light/50 rounded-lg p-2 md:p-3 text-xs md:text-sm text-text-secondary leading-relaxed border border-white/5">
             <span className="text-accent-green font-medium">Nova:</span> Great form! Current stage: <span className="text-accent-magenta font-bold">{stage}</span>
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-8 flex items-center gap-4">
-          <div className="flex bg-bg-panel/80 backdrop-blur-md border border-bg-panel-light rounded-full p-2 shadow-xl">
-             <button className="w-10 h-10 flex items-center justify-center hover:bg-bg-panel-light rounded-full transition-colors">
-               <Pause size={18} />
+        <div className="absolute bottom-4 md:bottom-8 left-4 md:left-8 flex items-center gap-2 md:gap-4 flex-wrap">
+          <div className="flex bg-bg-panel/80 backdrop-blur-md border border-bg-panel-light rounded-full p-1 md:p-2 shadow-xl">
+             <button className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center hover:bg-bg-panel-light rounded-full transition-colors">
+               <Pause size={16} />
              </button>
-             <button className="w-10 h-10 flex items-center justify-center hover:bg-bg-panel-light rounded-full transition-colors">
-               <RotateCcw size={18} />
+             <button className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center hover:bg-bg-panel-light rounded-full transition-colors">
+               <RotateCcw size={16} />
              </button>
           </div>
           <button onClick={() => {
@@ -212,7 +212,7 @@ function VideoPanel({ reps, setReps, stage, setStage, exercise, setExercise, set
             } else {
               window.location.href = '/dashboard';
             }
-          }} className="ml-4 px-4 py-2 bg-accent-pink text-white font-bold rounded-lg shadow-[0_0_15px_rgba(255,0,247,0.4)] hover:bg-white hover:text-black transition-colors flex items-center gap-2 cursor-pointer border-none">
+          }} className="px-3 md:px-4 py-2 text-xs md:text-base bg-accent-pink text-white font-bold rounded-lg shadow-[0_0_15px_rgba(255,0,247,0.4)] hover:bg-white hover:text-black transition-colors flex items-center gap-2 cursor-pointer border-none">
              <span>FINISH WORKOUT</span>
           </button>
         </div>
@@ -240,7 +240,7 @@ function formatTime(seconds: number) {
 function RepsOverviewCard({ reps, formScore, duration }: any) {
   const dashoffset = 283 - ((reps / 15) * 283);
   return (
-    <div className="bg-bg-panel rounded-2xl border border-bg-panel-light p-6 shadow-md flex gap-6">
+    <div className="bg-bg-panel rounded-2xl border border-bg-panel-light p-6 shadow-md flex flex-col sm:flex-row gap-6">
       <div className="flex-1 flex flex-col items-center justify-center relative">
         <h3 className="text-text-secondary text-xs font-bold tracking-wider mb-2 absolute top-0 left-0 uppercase">Reps</h3>
         <button className="absolute top-0 right-0 text-text-secondary hover:text-white transition-colors">
