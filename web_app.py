@@ -50,6 +50,16 @@ class Workout(db.Model):
 with app.app_context():
     db.create_all()
 
+@app.before_request
+def auto_login_for_testing():
+    if 'user_id' not in session:
+        user = User.query.first()
+        if not user:
+            user = User(username='tester', email='tester@example.com', password='xxx')
+            db.session.add(user)
+            db.session.commit()
+        session['user_id'] = user.id
+        session['username'] = user.username
 
 @app.route('/')
 def index():
