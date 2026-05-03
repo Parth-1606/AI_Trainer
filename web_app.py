@@ -63,75 +63,10 @@ def auto_login_for_testing():
 
 @app.route('/')
 def index():
-    if 'user_id' in session:
-        return redirect(url_for('dashboard'))
-    return render_template('landing.html')
-
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-        
-        # Validation
-        if not username or not email or not password:
-            flash('All fields are required!', 'error')
-            return redirect(url_for('signup'))
-        
-        if password != confirm_password:
-            flash('Passwords do not match!', 'error')
-            return redirect(url_for('signup'))
-        
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists!', 'error')
-            return redirect(url_for('signup'))
-        
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered!', 'error')
-            return redirect(url_for('signup'))
-        
-        
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        new_user = User(username=username, email=email, password=hashed_password)
-        
-        db.session.add(new_user)
-        db.session.commit()
-        
-        flash('Account created successfully! Please login.', 'success')
-        return redirect(url_for('login'))
-    
-    return render_template('signup.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        user = User.query.filter_by(username=username).first()
-        
-        if user and check_password_hash(user.password, password):
-            session['user_id'] = user.id
-            session['username'] = user.username
-            flash('Login successful!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid username or password!', 'error')
-    
-    return render_template('login.html')
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    flash('Logged out successfully!', 'success')
-    return redirect(url_for('login'))
+    return redirect(url_for('dashboard'))
 
 @app.route('/dashboard')
 def dashboard():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
     
     user_id = session['user_id']
     user = User.query.get(user_id)
@@ -238,33 +173,22 @@ def dashboard():
 
 @app.route('/calendar')
 def calendar():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
     return render_template('calendar.html')
 
 @app.route('/vitals')
 def vitals():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
     return render_template('vitals.html')
 
 @app.route('/community')
 def community():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
     return render_template('community.html')
 
 @app.route('/nutrition')
 def nutrition():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
     return render_template('nutrition.html')
 
 @app.route('/settings')
 def settings():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
     return render_template('settings.html')
 
 @app.route('/api/workouts')
@@ -358,8 +282,6 @@ from flask import send_from_directory
 
 @app.route('/trainer_ui')
 def trainer_ui():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
     return send_from_directory('frontend/dist', 'index.html')
 
 @app.route('/assets/<path:path>')
@@ -368,9 +290,6 @@ def serve_assets(path):
 
 @app.route('/start_trainer')
 def start_trainer():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
     return render_template('web_trainer.html')
 
 if __name__ == '__main__':
