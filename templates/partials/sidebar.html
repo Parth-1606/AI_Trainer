@@ -38,10 +38,7 @@
             <div class="sidebar-icon">⚙️</div>
             <span class="sidebar-text">Settings</span>
         </a>
-        <a href="{{ url_for('logout') }}" class="sidebar-item" style="margin-top: auto; color: #ff4d4d;">
-            <div class="sidebar-icon">🚪</div>
-            <span class="sidebar-text">Logout</span>
-        </a>
+
     </div>
     
     <!-- Profile Avatar with Popup -->
@@ -116,18 +113,7 @@
                 </a>
             </div>
             
-            <!-- Logout -->
-            <div style="padding: 0 8px 8px;">
-                <a href="{{ url_for('logout') }}" style="
-                    display: flex; align-items: center; gap: 10px;
-                    padding: 10px 12px; border-radius: 10px;
-                    color: #ff4d4d; text-decoration: none; font-size: 0.85rem; font-weight: 500;
-                    border-top: 1px solid rgba(255,255,255,0.05);
-                    transition: background 0.2s;
-                " onmouseover="this.style.background='rgba(255,77,77,0.1)'" onmouseout="this.style.background='transparent'">
-                    <span>🚪</span> Sign Out
-                </a>
-            </div>
+
         </div>
     </div>
 </div>
